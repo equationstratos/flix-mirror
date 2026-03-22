@@ -1,0 +1,34 @@
+name: Sync Flemmix Mirror
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # S'exécute tous les jours à 4h du matin
+  workflow_dispatch: # Permet de le lancer manuellement
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install cloudscraper beautifulsoup4
+          sudo apt-get install nodejs
+
+      - name: Run Scraper
+        run: python sync_mirror.py
+
+      - name: Commit and Push JSON
+        run: |
+          git config --global user.name "MirrorBot"
+          git config --global user.email "bot@github.com"
+          git add mirror.json
+          git commit -m "Update mirror.json" || exit 0
+          git push
